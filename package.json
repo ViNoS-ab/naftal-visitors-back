@@ -1,0 +1,32 @@
+{
+  "name": "naftal-visitors-back",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node build/src/app.js",
+    "watch": "concurrently  --names \"TS,Nodemon\" -c \"bgBlue,bgMagenta\"  \"tsc -w \" \"nodemon ./build/src/app.js \"",
+    "migrate": "npx prisma migrate dev && npx prisma generate",
+    "push": "npx prisma db push",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/config": "^3.3.4",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.30",
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.0",
+    "prisma": "^5.11.0",
+    "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.11.0",
+    "config": "^3.3.11",
+    "dotenv": "^16.4.5",
+    "envalid": "^8.0.0",
+    "express": "^4.19.1"
+  }
+}
