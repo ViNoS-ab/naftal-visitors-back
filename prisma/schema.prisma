@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,116 +8,110 @@ datasource db {
 }
 
 model Employer {
-  id          String      @id @default(uuid())
-  direction   Direction   @relation(fields: [directionId], references: [id])
+  id          String      @id @unique @default(uuid())
   directionId String
+  userId      String      @unique
+  direction   Direction   @relation(fields: [directionId], references: [id])
   user        Utilisateur @relation(fields: [userId], references: [id])
-  userId      String
 }
 
 model Visite {
-  id                     String        @id @default(uuid())
-  visiteur               Visiteur      @relation(fields: [visiteurId], references: [id])
+  id                     String        @id @unique @default(uuid())
   visiteurId             String
-  destination            Utilisateur   @relation(fields: [destinationId], references: [id])
-  destinationId          String
   heureEntrer            DateTime
   heureEntrerDestination DateTime
   heureSortirDestination DateTime
   heureSortir            DateTime
+  utilisateurId          String
+  receptionisteId        String        @unique
+  directionId            String
+  direction              Direction     @relation(fields: [directionId], references: [id])
+  utilisateur            Utilisateur   @relation(fields: [utilisateurId], references: [id])
   receptioniste          Recepcioniste @relation(fields: [receptionisteId], references: [id])
-  receptionisteId        String
+  visiteur               Visiteur      @relation(fields: [visiteurId], references: [id])
 }
 
 model Directeur_branche {
-  id        String      @id @default(uuid())
-  user      Utilisateur @relation(fields: [userId], references: [id])
-  userId    String
-  branche   Branche     @relation(fields: [brancheId], references: [id])
-  brancheId String
+  id       String      @id @unique @default(uuid())
+  userId   String      @unique
+  bracheId String      @unique
+  branche  Branche     @relation(fields: [bracheId], references: [id])
+  user     Utilisateur @relation(fields: [userId], references: [id])
 }
 
 model Direction {
-  id            String       @id @default(uuid())
-  nom           String
-  branche       Branche      @relation(fields: [brancheId], references: [id])
-  brancheId     String
-  Employers     Employer[]
-  Secretaires   Secretaire[]
-  Directeurs    Directeur[]
-  Utilisateur   Utilisateur? @relation(fields: [utilisateurId], references: [id])
-  utilisateurId String?
+  id         String      @id @unique @default(uuid())
+  nom        String
+  brancheId  String
+  branche    Branche     @relation(fields: [brancheId], references: [id])
+  Directeur  Directeur?
+  Employers  Employer[]
+  visites    Visite[]
+  Secretaire Secretaire?
 
-  @@index([brancheId])
+  @@index([brancheId, nom])
 }
 
 model Secretaire {
-  id          String      @id @default(uuid())
-  user        Utilisateur @relation(fields: [userId], references: [id])
-  userId      String
+  id          String      @id @unique @default(uuid())
+  userId      String      @unique
+  directionId String      @unique
   direction   Direction   @relation(fields: [directionId], references: [id])
-  directionId String
+  user        Utilisateur @relation(fields: [userId], references: [id])
 }
 
 model Utilisateur {
-  id                 String              @id @default(uuid())
-  firstName          String
-  lastName           String
-  email              String
-  password           String
-  employers          Employer[]
-  directeurs         Directeur[]
-  branches           Branche[]
-  secretaires        Secretaire[]
-  visiteurs          Visiteur[]
-  recepcionistes     Recepcioniste[]
-  directions         Direction[]
-  visites            Visite[]
-  Directeur_branches Directeur_branche[]
+  id                String             @id @unique @default(uuid())
+  firstName         String
+  lastName          String
+  email             String             @unique
+  password          String
+  directeur         Directeur?
+  Directeur_branche Directeur_branche?
+  employer          Employer?
+  recepcioniste     Recepcioniste?
+  secretaire        Secretaire?
+  visites           Visite[]
 
   @@index([firstName, lastName])
 }
 
 model Branche {
-  id               String              @id @default(uuid())
+  id               String             @id @unique @default(uuid())
   nom              String
   adresse          String
   wilaya           String
-  directeur        Utilisateur         @relation(fields: [directeurId], references: [id])
-  directeurId      String
-  directeurBranche Directeur_branche[]
   direction        Direction[]
   recepcioniste    Recepcioniste[]
+  directeurBranche Directeur_branche?
 }
 
 model Visiteur {
-  id            String      @id @default(uuid())
-  firstName     String
-  lastName      String
-  adresse       String
-  typePiece     String
-  idPiece       String      @unique
-  entreprise    String?
-  visites       Visite[]
-  Utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
-  utilisateurId String // the visitor is supposed to visit a specific person, so that user is the destination
+  id         String   @id @unique @default(uuid())
+  firstName  String
+  lastName   String
+  adresse    String
+  typePiece  String
+  idPiece    String   @unique
+  entreprise String?
+  visites    Visite[]
 
   @@index([firstName, lastName])
 }
 
 model Recepcioniste {
-  id        String      @id @default(uuid())
-  user      Utilisateur @relation(fields: [userId], references: [id])
-  userId    String
-  branche   Branche     @relation(fields: [brancheId], references: [id])
+  id        String      @id @unique @default(uuid())
+  userId    String      @unique
   brancheId String
+  branche   Branche     @relation(fields: [brancheId], references: [id])
+  user      Utilisateur @relation(fields: [userId], references: [id])
   visites   Visite[]
 }
 
 model Directeur {
-  id          String      @id @default(uuid())
-  user        Utilisateur @relation(fields: [userId], references: [id])
-  userId      String
+  id          String      @id @unique @default(uuid())
+  userId      String      @unique
+  directionId String      @unique
   direction   Direction   @relation(fields: [directionId], references: [id])
-  directionId String
+  user        Utilisateur @relation(fields: [userId], references: [id])
 }

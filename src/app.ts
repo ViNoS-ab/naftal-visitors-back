@@ -1,32 +1,28 @@
 import "dotenv/config";
 import express, { type Response } from "express";
 import validateEnv from "./utils/validateEnv";
-import { PrismaClient } from "@prisma/client";
+import cookieParser from "cookie-parser";
+import routes from "./routes";
 
 validateEnv();
-
-const prisma = new PrismaClient();
 const app = express();
+app.use(express.json());
+app.use(cookieParser());
 
-async function bootstrap() {
-  // Testing
-  app.get("/api/healthchecker", async (_, res: Response) => {
-    res.status(200).json({
-      success: true,
-      message: "UP",
-    });
-  });
+app.use("/api/v1", routes);
 
-  const port = process.env.PORT;
-  app.listen(port, () => {
-    console.log(`Server on port: ${port}`);
-  });
-}
+app.get("/api/healthchecker", async (_, res: Response) => {
+  // this route is just to check if the server is up and running, made for envirements where there is a health checker.
 
-bootstrap()
-  .catch(err => {
-    throw err;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
+  res.status(200).json({
+    success: true,
+    message: "UP",
   });
+});
+
+const port = process.env.PORT;
+app.listen(port, () => {
+  console.log(`🚀 Server us running on port: ${port}`);
+});
+
+
