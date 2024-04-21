@@ -1,5 +1,7 @@
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { Response } from "express";
+import { getUserRoles } from "../repositories/UserRepository";
+import { UserRole } from "../types/Utilisateur";
 
 const EXPIRY_TIME = 16 * 60 * 60; // 16h in seconds
 
@@ -9,16 +11,17 @@ export const createJwtToken = (payload: object) => {
   } as SignOptions);
 };
 
-export const verifyJwtToken = (token: string): JwtPayload  => {
-  return jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+export const verifyJwtToken = (token: string): { id: string; roles: UserRole[] } => {
+  return jwt.verify(token, process.env.JWT_SECRET!) as { id: string; roles: UserRole[] };
 };
 
-export const addTokenToCookie = (res: Response, id: string) => {
+export const addTokenToCookie = async (res: Response, id: string) => {
   res.clearCookie("token");
-  const token = createJwtToken({id});
+  const roles = await getUserRoles(id);
+  const token = createJwtToken({ id, roles });
   res.cookie("token", "Bearer " + token, {
     httpOnly: true,
     maxAge: EXPIRY_TIME * 1000,
-    secure: true
+    secure: true,
   });
 };

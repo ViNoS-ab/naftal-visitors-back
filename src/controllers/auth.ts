@@ -19,7 +19,7 @@ export const signupController: RequestHandler = async (req, res) => {
       lastName,
       password,
     });
-    addTokenToCookie(res, user.id);
+    await addTokenToCookie(res, user.id);
     successResponse(res, { user }, 201);
   } catch (error) {
     if (error instanceof PrismaClientValidationError)
@@ -41,7 +41,7 @@ export const loginController: RequestHandler = async (req, res) => {
     if (!(await user.verifyPassword(password)))
       return errorResponse(res, "invalid password", 401);
 
-    addTokenToCookie(res, user.id);
+    await addTokenToCookie(res, user.id);
     return successResponse(res, { ...user, password: undefined }, 200);
   } catch (error) {
     console.log("🚀 ~ constloginController:RequestHandler= ~ error:", error);

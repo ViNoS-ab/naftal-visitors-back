@@ -1,15 +1,15 @@
 import { RequestHandler } from "express";
 import { errorResponse } from "../utils/responses";
 import { verifyJwtToken } from "../utils/createToken";
-import prisma from "../../config/prisma";
+import { UserRole } from "../types/Utilisateur";
 
 export const isAuthenticated: RequestHandler = (req, res, next) => {
-  const token = req.cookies.token.split("Bearer ")[1];
+  let token = req.cookies.token?.split("Bearer ")?.[1];
   if (!token) return errorResponse(res, "Token is missing", 401);
   try {
     const decoded = verifyJwtToken(token);
     if (!decoded) return errorResponse(res, "Token is invalid", 401);
-    req.userId = decoded.id;
+    req.user = { id: decoded.id, roles: decoded.roles };
     next();
   } catch (error) {
     if (!(error instanceof Error)) return errorResponse(res, "Token is invalid", 401);
@@ -17,53 +17,30 @@ export const isAuthenticated: RequestHandler = (req, res, next) => {
   }
 };
 
+/**
+ *
+ * @requires isAuthenticated middleware to be passed before
+ * @param roles roles that have permission to proceed
+ * @returns {RequestHandler} middleware to check the given role
+ */
+
 export const checkPermissions =
   (...roles: UserRole[]): RequestHandler =>
   async (req, res, next) => {
-    const userId = req.userId;
-    let isAuthorized = true;
     try {
-      for (const role of roles) isAuthorized = await hasPermission(userId, role);
-      if (!hasPermission) isAuthorized = false;
+      const userRoles = req.user.roles;
+      let isAuthorized = false;
+      for (const role of roles)
+        if (userRoles.includes(role)) {
+          isAuthorized = true;
+          break;
+        }
+
+      if (!isAuthorized)
+        return errorResponse(res, "you are not authorized to do this", 403);
 
       next();
     } catch (error) {
       return errorResponse(res, "there was an error, try again later");
     }
   };
-
-async function hasPermission(userId: string, role: UserRole): Promise<boolean> {
-  try {
-    let isAuthorized = true;
-    switch (role) {
-      case "directeur": {
-        const directeur = await prisma.directeur.findUnique({ where: { userId } });
-        if (!directeur) isAuthorized = false; 
-        break;
-      }
-      case "employer": {
-        const employer = await prisma.employer.findFirst({ where: { userId } });
-        if (!employer) isAuthorized = false;
-        break;
-      }
-      case "secretaire": {
-        const secretaire = await prisma.secretaire.findFirst({ where: { userId } });
-        if (!secretaire) isAuthorized = false;
-        break;
-      }
-      case "recepcioniste": {
-        const recepcioniste = await prisma.recepcioniste.findFirst({ where: { userId } });
-        if (!recepcioniste) isAuthorized = false;
-        break;
-      }
-
-      default:
-        isAuthorized = true;
-    }
-    return isAuthorized; // we could've returned the value directly from the switch, but for typescript reasons and to avoid both configuring it, and to avoid un clean workrounds we added that variable 
-  } catch (error) {
-    throw error;
-  }
-}
-
-type UserRole = "directeur" | "secretaire" | "employer" | "recepcioniste";
