@@ -2,6 +2,8 @@ import prisma from "../../config/prisma";
 import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
 import { UserRole, Utilisateur } from "../types/Utilisateur";
+import { findDirection } from "./DirectionRepository";
+import { BRANCH_MAIN_DIRECTION } from "./BrancheRepository";
 export const findUserByEmail = async (email: string) => {
   return prisma.utilisateur.findUnique({
     where: {
@@ -66,10 +68,14 @@ export const getUserRoles = async (
     if (typeof userInp === "string") user = await findUserById(userInp);
     else user = userInp;
     const userRoles: UserRole[] = [];
-    if (user?.directeur) userRoles.push("directeur");
     if (user?.employer) userRoles.push("employer");
     if (user?.recepcioniste) userRoles.push("recepcioniste");
     if (user?.secretaire) userRoles.push("secretaire");
+    if (user?.directeur) {
+      const direction = await findDirection({ Directeur: user });
+      if (direction?.nom === BRANCH_MAIN_DIRECTION) userRoles.push("directeur_branche");
+      userRoles.push("directeur");
+    }
 
     return userRoles;
   } catch (error) {

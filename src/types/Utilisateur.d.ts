@@ -17,4 +17,4 @@ export type Utilisateur = User & {
   secretaire?: Secretaire;
 };
 
-export type UserRole = "directeur" | "secretaire" | "employer" | "recepcioniste";
+export type UserRole = "directeur_branche"| "directeur" | "secretaire" | "employer" | "recepcioniste";
