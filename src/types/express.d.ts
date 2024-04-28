@@ -1,7 +1,11 @@
 import { Request } from "express";
+import { UserRole } from "./Utilisateur";
 
 declare module "express-serve-static-core" {
   export interface Request {
-    userId: string;
+    user: {
+      id: string;
+      roles: UserRole[]
+    };
   }
 }

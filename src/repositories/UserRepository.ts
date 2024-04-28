@@ -1,8 +1,10 @@
-// userRepository.ts
 import prisma from "../../config/prisma";
 import bcrypt from "bcrypt";
-import { Utilisateur, Branche, Prisma } from "@prisma/client";
-export const findUserByEmail = async (email: string)  => {
+import { Prisma } from "@prisma/client";
+import { UserRole, Utilisateur } from "../types/Utilisateur";
+import { findDirection } from "./DirectionRepository";
+import { BRANCH_MAIN_DIRECTION } from "./BrancheRepository";
+export const findUserByEmail = async (email: string) => {
   return prisma.utilisateur.findUnique({
     where: {
       email,
@@ -10,9 +12,7 @@ export const findUserByEmail = async (email: string)  => {
   });
 };
 
-export const findUserById = async (
-  id: string
-): Promise<Omit<Utilisateur, "password"> | null> => {
+export const findUserById = (id: string) => {
   return prisma.utilisateur.findUnique({
     where: {
       id,
@@ -22,11 +22,25 @@ export const findUserById = async (
       firstName: true,
       lastName: true,
       email: true,
-      Directeur_branche: true,
       directeur: true,
       employer: true,
       recepcioniste: true,
       secretaire: true,
+    },
+  });
+};
+
+export const updateUserById = (id: string, data: Prisma.UtilisateurUpdateInput) => {
+  return prisma.utilisateur.update({
+    where: {
+      id,
+    },
+    data,
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
     },
   });
 };
@@ -46,8 +60,25 @@ export const createUser = async (
   }
 };
 
-// export const getUserRoles = (id: string): Promise<UserRole[]> => {
+export const getUserRoles = async (
+  userInp: string | Utilisateur
+): Promise<UserRole[]> => {
+  try {
+    let user;
+    if (typeof userInp === "string") user = await findUserById(userInp);
+    else user = userInp;
+    const userRoles: UserRole[] = [];
+    if (user?.employer) userRoles.push("employer");
+    if (user?.recepcioniste) userRoles.push("recepcioniste");
+    if (user?.secretaire) userRoles.push("secretaire");
+    if (user?.directeur) {
+      const direction = await findDirection({ Directeur: user });
+      if (direction?.nom === BRANCH_MAIN_DIRECTION) userRoles.push("directeur_branche");
+      userRoles.push("directeur");
+    }
 
-// }
-
-type UserRole = "directeur" | "secretaire" | "employer" | "recepcioniste";
+    return userRoles;
+  } catch (error) {
+    return [];
+  }
+};

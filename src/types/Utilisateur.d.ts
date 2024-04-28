@@ -6,6 +6,15 @@ import {
   Direction,
   Secretaire,
   Recepcioniste,
+  Directeur_branche,
 } from "@prisma/client";
 
-export type Utilisateur = User & {branche: Branche} | {}
+export type Utilisateur = User & {
+  directeur?: Directeur;
+  Directeur_branche?: Directeur_branche;
+  employer?: Employer;
+  recepcioniste?: Recepcioniste;
+  secretaire?: Secretaire;
+};
+
+export type UserRole = "directeur_branche"| "directeur" | "secretaire" | "employer" | "recepcioniste";

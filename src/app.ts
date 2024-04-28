@@ -3,9 +3,17 @@ import express, { type Response } from "express";
 import validateEnv from "./utils/validateEnv";
 import cookieParser from "cookie-parser";
 import routes from "./routes";
+import cors from "cors";
 
 validateEnv();
 const app = express();
+app.use(
+  cors({
+    credentials: true,
+    origin: true, // TODO: change it on production to real origins
+    allowedHeaders: ["Content-Type"]
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 

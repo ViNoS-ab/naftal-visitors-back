@@ -31,24 +31,16 @@ model Visite {
   visiteur               Visiteur      @relation(fields: [visiteurId], references: [id])
 }
 
-model Directeur_branche {
-  id       String      @id @unique @default(uuid())
-  userId   String      @unique
-  bracheId String      @unique
-  branche  Branche     @relation(fields: [bracheId], references: [id])
-  user     Utilisateur @relation(fields: [userId], references: [id])
-}
-
 model Direction {
   id         String      @id @unique @default(uuid())
-  nom        String
+  nom        String      
   brancheId  String
-  branche    Branche     @relation(fields: [brancheId], references: [id])
+  branche    Branche     @relation(fields: [brancheId], references: [id], onDelete: Cascade)
   Directeur  Directeur?
   Employers  Employer[]
   visites    Visite[]
   Secretaire Secretaire?
-
+  @@unique(fields: [brancheId, nom ])
   @@index([brancheId, nom])
 }
 
@@ -67,7 +59,6 @@ model Utilisateur {
   email             String             @unique
   password          String
   directeur         Directeur?
-  Directeur_branche Directeur_branche?
   employer          Employer?
   recepcioniste     Recepcioniste?
   secretaire        Secretaire?
@@ -83,7 +74,6 @@ model Branche {
   wilaya           String
   direction        Direction[]
   recepcioniste    Recepcioniste[]
-  directeurBranche Directeur_branche?
 }
 
 model Visiteur {
