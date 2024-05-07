@@ -1,15 +1,26 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../config/prisma";
-const BASE_INCLUDED_FIELDS = {
-  branche: true,
+import { updateUserById } from "./UserRepository";
+
+const BASE_USER_INCLUDE_FIELDS: Prisma.UtilisateurSelect = {
+  email: true,
+  id: true,
+  firstName: true,
+  lastName: true,
+};
+const BASE_INCLUDED_FIELDS: Prisma.DirectionInclude = {
   Directeur: {
     select: {
-      user: true,
+      user: {
+        select: BASE_USER_INCLUDE_FIELDS,
+      },
     },
   },
   Secretaire: {
     select: {
-      user: true,
+      user: {
+        select: BASE_USER_INCLUDE_FIELDS,
+      },
     },
   },
 };
@@ -30,7 +41,7 @@ export const createDirection = (direction: Prisma.DirectionCreateInput) => {
 
 export const updateDirection = (
   where: Prisma.DirectionWhereUniqueInput,
-  direction: Prisma.DirectionUpdateInput
+  direction: Prisma.DirectionUncheckedUpdateInput
 ) => {
   return prisma.direction.update({
     where,
@@ -39,9 +50,84 @@ export const updateDirection = (
   });
 };
 
-export const findDirection = async (
+export const updateDirectionDirector = (
+  directionId: string,
+  userId: string,
+  branchId: string
+) => {
+  return prisma.$transaction([
+    prisma.directeur.upsert({
+      where: { directionId: directionId },
+      update: { user: { connect: { id: userId } } },
+      create: { directionId: directionId, userId },
+    }),
+    updateUserById(userId, {
+      branche: {
+        connect: {
+          id: branchId,
+        },
+      },
+    }),
+  ]);
+};
+
+export const updateDirectionSecretary = (
+  directionId: string,
+  userId: string,
+  branchId: string
+) => {
+  return prisma.$transaction([
+    prisma.secretaire.upsert({
+      where: { directionId: directionId },
+      update: { user: { connect: { id: userId } } },
+      create: { directionId: directionId, userId },
+    }),
+    updateUserById(userId, {
+      branche: {
+        connect: {
+          id: branchId,
+        },
+      },
+    }),
+  ]);
+};
+
+export const addEmployerToDirection = (userId: string, directionId: string) => {
+  return prisma.utilisateur.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      employer: {
+        create: {
+          directionId,
+        },
+      },
+    },
+  });
+};
+
+export const removeEmployerFromDirection = (userId: string, directionId: string) => {
+  return prisma.utilisateur.update({
+    where: { id: userId },
+    data: { employer: { delete: { directionId } } },
+  });
+};
+
+export const findDirection = (
   query: Prisma.DirectionWhereInput,
   args?: Prisma.DirectionFindFirstArgs
 ) => {
   return prisma.direction.findFirst({ where: query, ...args });
+};
+
+export const findMnayDirections = (
+  query: Prisma.DirectionWhereInput,
+  args?: Prisma.DirectionFindManyArgs
+) => {
+  return prisma.direction.findMany({ where: query, ...args });
+};
+
+export const deleteDirection = (id: string) => {
+  return prisma.direction.delete({ where: { id } });
 };

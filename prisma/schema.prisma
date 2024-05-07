@@ -11,8 +11,8 @@ model Employer {
   id          String      @id @unique @default(uuid())
   directionId String
   userId      String      @unique
-  direction   Direction   @relation(fields: [directionId], references: [id])
-  user        Utilisateur @relation(fields: [userId], references: [id])
+  direction   Direction   @relation(fields: [directionId], references: [id], onDelete: Cascade)
+  user        Utilisateur @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Visite {
@@ -33,14 +33,15 @@ model Visite {
 
 model Direction {
   id         String      @id @unique @default(uuid())
-  nom        String      
+  nom        String
   brancheId  String
   branche    Branche     @relation(fields: [brancheId], references: [id], onDelete: Cascade)
   Directeur  Directeur?
   Employers  Employer[]
   visites    Visite[]
   Secretaire Secretaire?
-  @@unique(fields: [brancheId, nom ])
+
+  @@unique(fields: [brancheId, nom])
   @@index([brancheId, nom])
 }
 
@@ -53,27 +54,30 @@ model Secretaire {
 }
 
 model Utilisateur {
-  id                String             @id @unique @default(uuid())
-  firstName         String
-  lastName          String
-  email             String             @unique
-  password          String
-  directeur         Directeur?
-  employer          Employer?
-  recepcioniste     Recepcioniste?
-  secretaire        Secretaire?
-  visites           Visite[]
+  id            String         @id @unique @default(uuid())
+  firstName     String
+  lastName      String
+  email         String         @unique
+  password      String
+  brancheId     String         
+  branche       Branche        @relation(fields: [brancheId], references: [id], onDelete: Cascade)
+  directeur     Directeur?
+  employer      Employer?
+  recepcioniste Recepcioniste?
+  secretaire    Secretaire?
+  visites       Visite[]
 
   @@index([firstName, lastName])
 }
 
 model Branche {
-  id               String             @id @unique @default(uuid())
-  nom              String
-  adresse          String
-  wilaya           String
-  direction        Direction[]
-  recepcioniste    Recepcioniste[]
+  id            String          @id @unique @default(uuid())
+  nom           String          @unique
+  adresse       String
+  wilaya        String
+  direction     Direction[]
+  recepcioniste Recepcioniste[]
+  Utilisateur   Utilisateur[]
 }
 
 model Visiteur {

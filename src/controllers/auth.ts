@@ -1,35 +1,43 @@
 import { RequestHandler } from "express";
 import { Utilisateur } from "@prisma/client";
-import { createUser, findUserByEmail } from "../repositories/UserRepository";
 import {
-  PrismaClientValidationError,
-  PrismaClientKnownRequestError,
-} from "@prisma/client/runtime/library";
+  createUser,
+  findUserByEmail,
+  getUserRoles,
+} from "../repositories/UserRepository";
+import { PrismaClientValidationError } from "@prisma/client/runtime/library";
 import { addTokenToCookie } from "../utils/createToken";
-import { errorResponse, successResponse } from "../utils/responses";
+import {
+  errorResponse,
+  prismaKnownErrorResponse,
+  successResponse,
+} from "../utils/responses";
 
 export const signupController: RequestHandler = async (req, res) => {
-  const { email, firstName, lastName, password }: Utilisateur = req.body;
-  if (!(email && firstName && lastName && password))
-    return errorResponse(res, "all data is required", 400);
+  const { email, firstName, lastName, password, brancheId }: Utilisateur = req.body;
+  if (!(email && firstName && lastName && password && brancheId))
+    return errorResponse(
+      res,
+      "fields (email && firstName && lastName && password && brancheId) are required",
+      400
+    );
   try {
     const user = await createUser({
       email,
       firstName,
       lastName,
       password,
+      branche: {
+        connect: { id: brancheId },
+      },
     });
-    await addTokenToCookie(res, user.id);
+    addTokenToCookie(res, { id: user.id, roles: [], brancheId });
     successResponse(res, { user }, 201);
   } catch (error) {
     if (error instanceof PrismaClientValidationError)
       return errorResponse(res, "Invalid data", 400);
 
-    if (error instanceof PrismaClientKnownRequestError)
-      if (error.code === "P2002")
-        return errorResponse(res, `${error.meta!.target} already exists`, 400);
-
-    errorResponse(res, "there was an error processing the request");
+    if (!prismaKnownErrorResponse(res, error)) return errorResponse(res);
   }
 };
 
@@ -41,10 +49,10 @@ export const loginController: RequestHandler = async (req, res) => {
     if (!(await user.verifyPassword(password)))
       return errorResponse(res, "invalid password", 401);
 
-    await addTokenToCookie(res, user.id);
+    const roles = await getUserRoles(user.id);
+    addTokenToCookie(res, { id: user.id, roles, brancheId: user.brancheId });
     return successResponse(res, { ...user, password: undefined }, 200);
   } catch (error) {
-    console.log("🚀 ~ constloginController:RequestHandler= ~ error:", error);
     errorResponse(res, "there was an error processing the request");
   }
 };

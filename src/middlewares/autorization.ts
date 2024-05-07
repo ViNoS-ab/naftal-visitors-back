@@ -9,7 +9,7 @@ export const isAuthenticated: RequestHandler = (req, res, next) => {
   try {
     const decoded = verifyJwtToken(token);
     if (!decoded) return errorResponse(res, "Token is invalid", 401);
-    req.user = { id: decoded.id, roles: decoded.roles };
+    req.user = { id: decoded.id, roles: decoded.roles, brancheId: decoded.brancheId };
     next();
   } catch (error) {
     if (!(error instanceof Error)) return errorResponse(res, "Token is invalid", 401);

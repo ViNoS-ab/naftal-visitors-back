@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
-import { findUserById, updateUserById } from "../repositories/UserRepository";
+import { findUserById, findUsers, updateUserById } from "../repositories/UserRepository";
 import { errorResponse, successResponse } from "../utils/responses";
+import { Prisma } from "@prisma/client";
 
 export const updateUser: RequestHandler = async (req, res) => {
   try {
@@ -21,6 +22,8 @@ export const updateUser: RequestHandler = async (req, res) => {
 export const getUser: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!id) return errorResponse(res, "User id is required", 400);
+
     const user = await findUserById(id);
     if (!user) {
       return errorResponse(res, "User not found", 404);
@@ -39,6 +42,35 @@ export const getProfile: RequestHandler = async (req, res) => {
       return errorResponse(res, "User not found", 404);
     }
     return successResponse(res, { user }, 200);
+  } catch (error) {
+    errorResponse(res, "there was an error processing the request");
+  }
+};
+
+const UtilisateurSearchableFields: Array<Prisma.UtilisateurScalarFieldEnum> = [
+  "firstName",
+  "lastName",
+  "email",
+] as const;
+export const getBranchUsers: RequestHandler = async (req, res) => {
+  try {
+    const filter: Prisma.UtilisateurWhereInput = {};
+    Object.entries(req.query).forEach(([key, value]) => {
+      const typedKey = key as (typeof UtilisateurSearchableFields)[number];
+      if (UtilisateurSearchableFields.includes(typedKey)) {
+        filter[typedKey] = {
+          contains: typeof value === "string" ? value : value?.toString(),
+        };
+      }
+    });
+
+    const users = await findUsers({
+      brancheId: req.user.brancheId,
+      ...filter,
+    });
+    if (!users.length) return errorResponse(res, "no users found", 404);
+
+    return successResponse(res, { users }, 200);
   } catch (error) {
     errorResponse(res, "there was an error processing the request");
   }
