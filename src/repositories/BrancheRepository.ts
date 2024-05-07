@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../config/prisma";
-import { updateDirection } from "./DirectionRepository";
+import { updateDirection, updateDirectionDirector } from "./DirectionRepository";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export const BRANCH_MAIN_DIRECTION = "direction_general" as const;
 
@@ -22,6 +23,7 @@ const BASE_INCLUDED_FIELDS: Prisma.BrancheSelect = {
           },
         },
       },
+      id: true
     },
   },
 };
@@ -59,24 +61,19 @@ export const updateBranch = (id: string, data: Prisma.BrancheUpdateInput) => {
   });
 };
 
-export const updateBrancheDirector = (brancheId: string, userId: string) => {
-  return updateDirection(
-    {
-      brancheId_nom: {
-        brancheId,
-        nom: BRANCH_MAIN_DIRECTION,
-      },
-    },
-    {
-      Directeur: {
-        update: {
-          user: {
-            connect: { id: userId },
-          },
-        },
-      },
-    }
-  );
+export const updateBrancheDirector = async (brancheId: string, userId: string) => {
+  try {
+    const branche = await getBranch(brancheId);
+    if (!branche)
+      throw new PrismaClientKnownRequestError("branche doesn't exist", {
+        code: "P2025",
+        clientVersion: "",
+        meta: { modelName: "Branche" },
+      });
+    return updateDirectionDirector(branche.direction[0].id, userId, brancheId);
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const findBranche = async (

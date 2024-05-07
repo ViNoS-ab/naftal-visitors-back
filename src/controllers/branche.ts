@@ -8,10 +8,11 @@ import {
   getBranch,
   getBranches,
   updateBranch,
+  updateBrancheDirector,
 } from "../repositories/BrancheRepository";
 import {
   errorResponse,
-  prismaNotFoundResponse,
+  prismaKnownErrorResponse,
   successResponse,
   validationErrorResponse,
 } from "../utils/responses";
@@ -24,7 +25,8 @@ export const createBranchController: RequestHandler = async (req, res) => {
     const branche = await createBranch({ nom, adresse, wilaya });
     return successResponse(res, { branche }, 201);
   } catch (error) {
-    if (!validationErrorResponse(res, error)) return errorResponse(res);
+    if (!validationErrorResponse(res, error) && !prismaKnownErrorResponse(res, error))
+      return errorResponse(res);
   }
 };
 
@@ -70,7 +72,7 @@ export const deleteBranchController: RequestHandler = async (req, res) => {
     const branche = await deleteBranch(id);
     return successResponse(res, { branche }, 200);
   } catch (error) {
-    if (!prismaNotFoundResponse(res, error)) return errorResponse(res);
+    if (!prismaKnownErrorResponse(res, error)) return errorResponse(res);
   }
 };
 
@@ -83,5 +85,18 @@ export const getBranchesByWilayaController: RequestHandler = async (req, res) =>
     return successResponse(res, { branches }, 200);
   } catch (error) {
     return errorResponse(res, "there was an error processing the request");
+  }
+};
+
+export const updateBranchDirectorController: RequestHandler = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) return errorResponse(res, "id is required", 400);
+    const { directorId } = req.body;
+    if (!directorId) return errorResponse(res, "directorId is required", 400);
+    const branche = await updateBrancheDirector(id, directorId);
+    return successResponse(res, { directeur: branche[1],  }, 200);
+  } catch (error) {
+    if (!validationErrorResponse(res, error)) return errorResponse(res);
   }
 };
