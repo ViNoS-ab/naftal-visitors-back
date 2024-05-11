@@ -9,6 +9,7 @@ import {
   getBranches,
   updateBranch,
   updateBrancheDirector,
+  updateBrancheRecepcioniste,
 } from "../repositories/BrancheRepository";
 import {
   errorResponse,
@@ -95,8 +96,21 @@ export const updateBranchDirectorController: RequestHandler = async (req, res) =
     const { directorId } = req.body;
     if (!directorId) return errorResponse(res, "directorId is required", 400);
     const branche = await updateBrancheDirector(id, directorId);
-    return successResponse(res, { directeur: branche[1],  }, 200);
+    return successResponse(res, { directeur: branche[1] }, 200);
   } catch (error) {
     if (!validationErrorResponse(res, error)) return errorResponse(res);
+  }
+};
+
+export const updateBrancheRecepcionisteController: RequestHandler = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) return errorResponse(res, "id is required", 400);
+    const { recepcionisteId } = req.body;
+    if (!recepcionisteId) return errorResponse(res, "recepcionisteId is required", 400);
+    const recepcioniste = await updateBrancheRecepcioniste(id, recepcionisteId);
+    return successResponse(res, { recepcioniste }, 200);
+  } catch (error) {
+    if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error)) return errorResponse(res);
   }
 };

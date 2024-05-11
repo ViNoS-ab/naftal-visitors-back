@@ -76,6 +76,15 @@ export const updateBrancheDirector = async (brancheId: string, userId: string) =
   }
 };
 
+export const updateBrancheRecepcioniste = async (brancheId: string, userId: string) => {
+  return prisma.recepcioniste.upsert({
+    where: { userId, brancheId },
+    update: { branche: { connect: { id: brancheId } } },
+    create: { brancheId, userId },
+  });
+};
+
+
 export const findBranche = async (
   query: Prisma.BrancheWhereInput,
   args?: Prisma.BrancheFindFirstArgs

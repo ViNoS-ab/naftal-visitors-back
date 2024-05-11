@@ -8,6 +8,7 @@ import {
   updateBranchController,
   getBranchesByWilayaController,
   updateBranchDirectorController,
+  updateBrancheRecepcionisteController,
 } from "../controllers/branche";
 
 const router = e.Router();
@@ -35,5 +36,10 @@ router.put(
   checkPermissions("directeur_branche"),
   updateBranchDirectorController
 );
-
+router.put(
+  "/recepcioniste/:id",
+  isAuthenticated,
+  checkPermissions("directeur_branche"),
+  updateBrancheRecepcionisteController
+);
 export default router;

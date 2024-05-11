@@ -63,7 +63,14 @@ export const getBranchUsers: RequestHandler = async (req, res) => {
         };
       }
     });
-
+    if (typeof req.query.directionId === "string") {
+      const dirFilter = { directionId: req.query.directionId };
+      filter.OR = [
+        { employer: dirFilter },
+        { directeur: dirFilter },
+        { secretaire: dirFilter },
+      ];
+    }
     const users = await findUsers({
       brancheId: req.user.brancheId,
       ...filter,
