@@ -19,9 +19,10 @@ model Visite {
   id                     String        @id @unique @default(uuid())
   visiteurId             String
   heureEntrer            DateTime
-  heureEntrerDestination DateTime
-  heureSortirDestination DateTime
-  heureSortir            DateTime
+  heureEntrerDestination DateTime?
+  heureSortirDestination DateTime?
+  heureSortir            DateTime?
+  typeVisite             typeVisite
   utilisateurId          String
   receptionisteId        String        @unique
   directionId            String
@@ -29,6 +30,11 @@ model Visite {
   utilisateur            Utilisateur   @relation(fields: [utilisateurId], references: [id])
   receptioniste          Recepcioniste @relation(fields: [receptionisteId], references: [id])
   visiteur               Visiteur      @relation(fields: [visiteurId], references: [id])
+}
+enum typeVisite {
+  personal
+  entreprise
+  
 }
 
 model Direction {
@@ -85,12 +91,17 @@ model Visiteur {
   firstName  String
   lastName   String
   adresse    String
-  typePiece  String
+  typePiece  TypePiece
   idPiece    String   @unique
   entreprise String?
   visites    Visite[]
 
   @@index([firstName, lastName])
+}
+enum TypePiece {
+  passport
+  carteID
+  permisConduite
 }
 
 model Recepcioniste {

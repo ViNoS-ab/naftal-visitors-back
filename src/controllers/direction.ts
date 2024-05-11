@@ -106,9 +106,10 @@ export const changeDirectionDirectorController: RequestHandler = async (req, res
 
 export const changeDirectionSecretaryController: RequestHandler = async (req, res) => {
   try {
-    const { id, secraitaireId } = req.body;
-    if (!id || !secraitaireId)
-      return errorResponse(res, "id and secraitaireId are required", 400);
+    const id = req.params.id
+    const { secraitaireId } = req.body;
+    if (!secraitaireId)
+      return errorResponse(res, "secraitaireId is required", 400);
     const direction = await findDirection({ id });
     if (!direction) return errorResponse(res, "direction not found", 404);
     await updateDirectionSecretary(id, secraitaireId, direction.brancheId);
