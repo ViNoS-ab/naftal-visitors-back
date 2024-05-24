@@ -84,6 +84,15 @@ export const updateBrancheRecepcioniste = async (brancheId: string, userId: stri
   });
 };
 
+export const createBrancheRecepcioniste = async (branchId: string, userId: string) => {
+  return prisma.recepcioniste.create({
+    data: {
+      brancheId: branchId,
+      userId,
+    },
+  });
+};
+
 
 export const findBranche = async (
   query: Prisma.BrancheWhereInput,

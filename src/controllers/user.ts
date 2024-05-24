@@ -1,7 +1,13 @@
 import { RequestHandler } from "express";
-import { findUserById, findUsers, updateUserById } from "../repositories/UserRepository";
+import {
+  findUserById,
+  findUsers,
+  getUserRoles,
+  updateUserById,
+} from "../repositories/UserRepository";
 import { errorResponse, successResponse } from "../utils/responses";
 import { Prisma } from "@prisma/client";
+import { Utilisateur } from "../types/Utilisateur";
 
 export const updateUser: RequestHandler = async (req, res) => {
   try {
@@ -41,7 +47,8 @@ export const getProfile: RequestHandler = async (req, res) => {
     if (!user) {
       return errorResponse(res, "User not found", 404);
     }
-    return successResponse(res, { user }, 200);
+    const roles =await getUserRoles(user as Utilisateur);
+    return successResponse(res, { user: { ...user , roles } }, 200);
   } catch (error) {
     errorResponse(res, "there was an error processing the request");
   }

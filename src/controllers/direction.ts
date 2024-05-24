@@ -66,13 +66,13 @@ export const updateDirectionController: RequestHandler = async (req, res) => {
 
 export const getDirectionsController: RequestHandler = async (req, res) => {
   try {
-    const { nom, brancheId } = req.query;
-    let query: Prisma.DirectionWhereInput = {};
+    const { nom } = req.query;
+    const brancheId = req.user.brancheId;
+    let query: Prisma.DirectionWhereInput = { brancheId };
     if (nom) query.nom = { contains: nom as string };
-    if (brancheId) query.brancheId = brancheId as string;
-    const direction = await findMnayDirections(query);
-    if (!direction) return errorResponse(res, "directio not found", 404);
-    return successResponse(res, { direction });
+    const directions = await findMnayDirections(query);
+    if (!directions) return errorResponse(res, "directio not found", 404);
+    return successResponse(res, { directions });
   } catch (error) {
     return errorResponse(res, "there was an error processing the request");
   }

@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { RequestHandler } from "express";
 import {
   createBranch,
+  createBrancheRecepcioniste,
   deleteBranch,
   findBranche,
   findManyBranches,
@@ -102,15 +103,16 @@ export const updateBranchDirectorController: RequestHandler = async (req, res) =
   }
 };
 
-export const updateBrancheRecepcionisteController: RequestHandler = async (req, res) => {
+export const addBrancheRecepcionisteController: RequestHandler = async (req, res) => {
   try {
     const id = req.params.id;
     if (!id) return errorResponse(res, "id is required", 400);
     const { recepcionisteId } = req.body;
     if (!recepcionisteId) return errorResponse(res, "recepcionisteId is required", 400);
-    const recepcioniste = await updateBrancheRecepcioniste(id, recepcionisteId);
+    const recepcioniste = await createBrancheRecepcioniste(id, recepcionisteId);
     return successResponse(res, { recepcioniste }, 200);
   } catch (error) {
-    if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error)) return errorResponse(res);
+    if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
+      return errorResponse(res);
   }
 };

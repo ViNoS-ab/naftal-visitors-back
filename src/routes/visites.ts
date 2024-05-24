@@ -1,13 +1,26 @@
 import e from "express";
-import { checkPermissions, isAuthenticated } from "../middlewares/autorization";
-import { addVisitController, endVisitController, getVisitsController , enterDirectrionController, exitDirectionController} from "../controllers/visite";
+import { checkPermissions } from "../middlewares/autorization";
+import {
+  addVisitController,
+  endVisitController,
+  getVisitsController,
+  enterDirectrionController,
+  exitDirectionController,
+  enterSiteController,
+  updateVisitStatusController,
+} from "../controllers/visite";
 
 const router = e.Router();
 
-router.get("/", isAuthenticated, getVisitsController)
-router.post("/", isAuthenticated, checkPermissions("recepcioniste"), addVisitController);
-router.post("/end/:id", isAuthenticated, checkPermissions("recepcioniste"), endVisitController);
-router.post("/enter/:id", isAuthenticated, checkPermissions("employer", "secretaire"), enterDirectrionController);
-router.post("/exit/:id", isAuthenticated, checkPermissions("employer" , "secretaire"), exitDirectionController);
+router.get("/", getVisitsController);
+router.post("/", checkPermissions("recepcioniste"), addVisitController);
+router.patch("/start/:id", checkPermissions("recepcioniste"), enterSiteController);
+router.patch("/end/:id", checkPermissions("recepcioniste"), endVisitController);
+router.patch("/enter/:id", enterDirectrionController);
+router.patch("/exit/:id", exitDirectionController);
+
+router.patch("/status/:id", updateVisitStatusController);
+
+
 
 export default router;
