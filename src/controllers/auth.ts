@@ -31,7 +31,7 @@ export const signupController: RequestHandler = async (req, res) => {
         connect: { id: brancheId },
       },
     });
-    addTokenToCookie(res, { id: user.id, roles: [], brancheId });
+    // addTokenToCookie(res, { id: user.id, roles: [], brancheId });
     successResponse(res, { user }, 201);
   } catch (error) {
     if (error instanceof PrismaClientValidationError)
@@ -51,8 +51,13 @@ export const loginController: RequestHandler = async (req, res) => {
 
     const roles = await getUserRoles(user.id);
     addTokenToCookie(res, { id: user.id, roles, brancheId: user.brancheId });
-    return successResponse(res, { ...user, password: undefined }, 200);
+    return successResponse(res, { user: { ...user, password: undefined, roles } }, 200);
   } catch (error) {
     errorResponse(res, "there was an error processing the request");
   }
+};
+
+export const logoutController: RequestHandler = (req, res) => {
+  res.clearCookie("token");
+  successResponse(res, { message: "logged out" }, 200);
 };

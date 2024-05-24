@@ -34,5 +34,8 @@ export const getVisit = (id: string) => {
 export const findVisits = (where: Prisma.VisiteWhereInput) => {
   return prisma.visite.findMany({
     where,
+    include: {
+      visiteur: true,
+    },
   });
 };

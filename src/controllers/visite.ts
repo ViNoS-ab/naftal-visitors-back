@@ -17,7 +17,7 @@ import { findUserById } from "../repositories/UserRepository";
 
 export const addVisitController: RequestHandler = async (req, res) => {
   try {
-    const { directionId, userId, visitType, heureEntrer } = req.body;
+    const { directionId, userId, visitType } = req.body;
     if ((await getDirectionById(directionId))?.brancheId !== req.user.brancheId)
       return errorResponse(res, "Invalid direction", 400);
 
@@ -28,18 +28,19 @@ export const addVisitController: RequestHandler = async (req, res) => {
     if (visitType !== typeVisite.entreprise && visitType !== typeVisite.personal)
       return errorResponse(res, "invalid visit type", 400);
 
-    const { adresse, firstName, idPiece, lastName, typePiece } = visiteur;
+    const { adresse, firstName, idPiece, lastName, typePiece, nationalite } = visiteur;
     if (
       !(
-        (adresse &&
-          firstName &&
-          idPiece &&
-          lastName &&
-          [TypePiece.carteID, TypePiece.passport, TypePiece.permisConduite].includes(
-            typePiece
-          )) ||
-        !visiteur.id
-      )
+        adresse &&
+        firstName &&
+        idPiece &&
+        lastName &&
+        nationalite &&
+        [TypePiece.carteID, TypePiece.passport, TypePiece.permisConduite].includes(
+          typePiece
+        )
+      ) &&
+      !visiteur.id
     ) {
       if (!visiteur.id) return errorResponse(res, "Missing visiteur id", 400);
       return errorResponse(res, "Missing visiteur fields", 400);
@@ -47,7 +48,6 @@ export const addVisitController: RequestHandler = async (req, res) => {
 
     const visite = await addVisit({
       direction: { connect: { id: directionId } },
-      heureEntrer: heureEntrer || new Date(),
       visiteur: visiteur.id ? { connect: { id: visiteur.id } } : { create: visiteur },
       receptioniste: { connect: { userId: req.user.id } },
       utilisateur: { connect: { id: userId } },
@@ -67,8 +67,7 @@ export const endVisitController: RequestHandler = async (req, res) => {
     let visit = await getVisit(id);
     if (!visit || visit.direction.brancheId !== req.user.brancheId)
       return errorResponse(res, "visit not found", 404);
-    const updatedFields:
-      Prisma.VisiteUpdateInput = { heureSortir: new Date() };
+    const updatedFields: Prisma.VisiteUpdateInput = { heureSortir: new Date() };
     if (visit.heureEntrerDestination && !visit.heureSortirDestination)
       updatedFields.heureSortirDestination = new Date();
     visit = await updateVisit(id, updatedFields);
@@ -143,6 +142,48 @@ export const exitDirectionController: RequestHandler = async (req, res) => {
 
     const updatedFields: Prisma.VisiteUpdateInput = {
       heureSortirDestination: new Date(),
+    };
+    visit = await updateVisit(id, updatedFields);
+    return successResponse(res, { visit });
+  } catch (error) {
+    if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
+      return errorResponse(res, "Internal server error");
+  }
+};
+
+export const enterSiteController: RequestHandler = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) return errorResponse(res, "Missing visit id", 400);
+    let visit = await getVisit(id);
+    if (!visit) return errorResponse(res, "visit not found", 404);
+
+    const updatedFields: Prisma.VisiteUpdateInput = {
+      heureEntrer: new Date(),
+    };
+    visit = await updateVisit(id, updatedFields);
+    return successResponse(res, { visit });
+  } catch (error) {
+    if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
+      return errorResponse(res, "Internal server error");
+  }
+};
+
+export const updateVisitStatusController: RequestHandler = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { status } = req.body;
+    if (!id) return errorResponse(res, "Missing visit id", 400);
+    let visit = await getVisit(id);
+    if (!visit) return errorResponse(res, "visit not found", 404);
+
+    if (visit.utilisateurId !== req.user.id)
+      return errorResponse(res, "you are not allowed to update this visit", 403);
+    if (!status) return errorResponse(res, "Missing status", 400);
+    if (visit.status !== "PENDING")
+      return errorResponse(res, "visit is already updated", 400);
+    const updatedFields: Prisma.VisiteUpdateInput = {
+      status,
     };
     visit = await updateVisit(id, updatedFields);
     return successResponse(res, { visit });

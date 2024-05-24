@@ -18,23 +18,30 @@ model Employer {
 model Visite {
   id                     String        @id @unique @default(uuid())
   visiteurId             String
-  heureEntrer            DateTime
+  heureEntrer            DateTime?
   heureEntrerDestination DateTime?
   heureSortirDestination DateTime?
   heureSortir            DateTime?
   typeVisite             typeVisite
+  status                 VisitStatus   @default(PENDING)
   utilisateurId          String
-  receptionisteId        String        @unique
+  receptionisteId        String
   directionId            String
   direction              Direction     @relation(fields: [directionId], references: [id])
   utilisateur            Utilisateur   @relation(fields: [utilisateurId], references: [id])
   receptioniste          Recepcioniste @relation(fields: [receptionisteId], references: [id])
   visiteur               Visiteur      @relation(fields: [visiteurId], references: [id])
 }
+
 enum typeVisite {
   personal
   entreprise
-  
+}
+
+enum VisitStatus {
+  ACCEPTED
+  PENDING
+  REJECTED
 }
 
 model Direction {
@@ -65,7 +72,7 @@ model Utilisateur {
   lastName      String
   email         String         @unique
   password      String
-  brancheId     String         
+  brancheId     String
   branche       Branche        @relation(fields: [brancheId], references: [id], onDelete: Cascade)
   directeur     Directeur?
   employer      Employer?
@@ -87,17 +94,19 @@ model Branche {
 }
 
 model Visiteur {
-  id         String   @id @unique @default(uuid())
-  firstName  String
-  lastName   String
-  adresse    String
-  typePiece  TypePiece
-  idPiece    String   @unique
-  entreprise String?
-  visites    Visite[]
+  id          String    @id @unique @default(uuid())
+  firstName   String
+  lastName    String
+  adresse     String
+  typePiece   TypePiece
+  idPiece     String    @unique
+  entreprise  String?
+  nationalite String
+  visites     Visite[]
 
   @@index([firstName, lastName])
 }
+
 enum TypePiece {
   passport
   carteID
