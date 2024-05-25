@@ -3,6 +3,7 @@ import { Response } from "express";
 import { getUserRoles } from "../repositories/UserRepository";
 import { UserRole } from "../types/Utilisateur";
 import { tokenPayload } from "../types/authTypes";
+import config from "../../config/default";
 
 const EXPIRY_TIME = 16 * 60 * 60; // 16h in seconds
 
@@ -26,5 +27,6 @@ export const addTokenToCookie = (res: Response, payload: tokenPayload) => {
     httpOnly: true,
     maxAge: EXPIRY_TIME * 1000,
     secure: true,
+    sameSite: config.isDev ? "lax" : "none",
   });
 };
