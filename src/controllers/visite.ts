@@ -14,16 +14,22 @@ import {
 } from "../utils/responses";
 import { getDirectionById } from "../repositories/DirectionRepository";
 import { findUserById } from "../repositories/UserRepository";
+import { io } from "../app";
+import { emitNewVisit, emitVisitRequest, emitVisitUpdate } from "../sockets/emitVisit";
 
 export const addVisitController: RequestHandler = async (req, res) => {
   try {
     const { directionId, userId, visitType } = req.body;
-    if ((await getDirectionById(directionId))?.brancheId !== req.user.brancheId)
-      return errorResponse(res, "Invalid direction", 400);
+    const direction = await getDirectionById(directionId);
 
+    if (!direction || !directionId)
+      return errorResponse(res, "Invalid direction", 400);
+    if (direction?.brancheId !== req.user.brancheId)
+      return errorResponse(res, "Not allowed to add in this branch", 403)
+    
     const visiteur = req.body.visiteur as Prisma.VisiteurCreateInput;
-    if (!directionId || !userId || !visiteur) {
-      return errorResponse(res, "Missing directionId or userId or visiteur", 400);
+    if ( !userId || !visiteur) {
+      return errorResponse(res, "Missing userId or visiteur", 400);
     }
     if (visitType !== typeVisite.entreprise && visitType !== typeVisite.personal)
       return errorResponse(res, "invalid visit type", 400);
@@ -52,8 +58,11 @@ export const addVisitController: RequestHandler = async (req, res) => {
       receptioniste: { connect: { userId: req.user.id } },
       utilisateur: { connect: { id: userId } },
       typeVisite: visitType,
+      visitTime: new Date(),
     });
-    return successResponse(res, { visite });
+    successResponse(res, { visite });
+    emitVisitRequest(visite)
+    emitNewVisit(visite)
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");
@@ -71,7 +80,8 @@ export const endVisitController: RequestHandler = async (req, res) => {
     if (visit.heureEntrerDestination && !visit.heureSortirDestination)
       updatedFields.heureSortirDestination = new Date();
     visit = await updateVisit(id, updatedFields);
-    return successResponse(res, { visit });
+    successResponse(res, { visit });
+    emitVisitUpdate(visit);
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");
@@ -82,17 +92,17 @@ export const getVisitsController: RequestHandler = async (req, res) => {
   try {
     const roles = req.user.roles;
     let query = { ...req.query } as Prisma.VisiteWhereInput;
-    if (
-      roles.some(
-        role =>
-          role === "directeur_branche" ||
-          role === "recepcioniste" ||
-          role === "secretaire"
-      )
-    ) {
+    if (roles.some(role => role === "directeur_branche" || role === "recepcioniste")) {
       query = { ...query, direction: { brancheId: req.user.brancheId } };
     } else if (roles.includes("directeur"))
       query = { ...query, direction: { Directeur: { userId: req.user.id } } };
+    else if (roles.includes("secretaire"))
+      query = {
+        ...query,
+        utilisateur: {
+          directeur: { direction: { Secretaire: { userId: req.user.id } } },
+        },
+      };
     else query = { ...query, utilisateurId: req.user.id };
 
     const visits = await findVisits(query);
@@ -120,7 +130,8 @@ export const enterDirectrionController: RequestHandler = async (req, res) => {
       heureEntrerDestination: new Date(),
     };
     visit = await updateVisit(id, updatedFields);
-    return successResponse(res, { visit });
+    successResponse(res, { visit });
+    emitVisitUpdate(visit);
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");
@@ -144,7 +155,8 @@ export const exitDirectionController: RequestHandler = async (req, res) => {
       heureSortirDestination: new Date(),
     };
     visit = await updateVisit(id, updatedFields);
-    return successResponse(res, { visit });
+    successResponse(res, { visit });
+    emitVisitUpdate(visit);
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");
@@ -162,7 +174,8 @@ export const enterSiteController: RequestHandler = async (req, res) => {
       heureEntrer: new Date(),
     };
     visit = await updateVisit(id, updatedFields);
-    return successResponse(res, { visit });
+    successResponse(res, { visit });
+    emitVisitUpdate(visit);
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");
@@ -186,7 +199,8 @@ export const updateVisitStatusController: RequestHandler = async (req, res) => {
       status,
     };
     visit = await updateVisit(id, updatedFields);
-    return successResponse(res, { visit });
+    successResponse(res, { visit });
+    emitVisitUpdate(visit);
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");

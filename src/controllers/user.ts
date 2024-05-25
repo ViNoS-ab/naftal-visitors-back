@@ -78,6 +78,7 @@ export const getBranchUsers: RequestHandler = async (req, res) => {
         { secretaire: dirFilter },
       ];
     }
+    
     const users = await findUsers({
       brancheId: req.user.brancheId,
       ...filter,

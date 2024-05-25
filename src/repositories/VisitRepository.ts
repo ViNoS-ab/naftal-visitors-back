@@ -2,7 +2,13 @@ import { Prisma } from "@prisma/client";
 import prisma from "../../config/prisma";
 
 export const addVisit = (data: Prisma.VisiteCreateInput) => {
-  return prisma.visite.create({ data });
+  return prisma.visite.create({
+    data,
+    include: {
+      visiteur: true,
+      utilisateur: true,
+    },
+  });
 };
 
 export const updateVisit = (id: string, data: Prisma.VisiteUpdateInput) => {
@@ -36,6 +42,7 @@ export const findVisits = (where: Prisma.VisiteWhereInput) => {
     where,
     include: {
       visiteur: true,
+      utilisateur: true,
     },
   });
 };

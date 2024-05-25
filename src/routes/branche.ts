@@ -13,20 +13,13 @@ import {
 
 const router = e.Router();
 
-router.post("/", createBranchController);
+router.post("/", checkPermissions("directeur_branche"), createBranchController);
 router.get("/", getBranchesController);
 router.get("/:id", getBranchController);
 router.put("/:id", updateBranchController);
 router.delete("/:id", deleteBranchController);
 router.get(
-  "/:id/users",
-
-  checkPermissions("directeur", "recepcioniste"),
-  getBranchController
-);
-router.get(
   "/wilayas/:wilaya",
-
   checkPermissions("directeur", "recepcioniste"),
   getBranchesByWilayaController
 );

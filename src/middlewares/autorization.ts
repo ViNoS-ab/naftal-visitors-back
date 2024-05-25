@@ -4,7 +4,7 @@ import { verifyJwtToken } from "../utils/createToken";
 import { UserRole } from "../types/Utilisateur";
 
 export const isAuthenticated: RequestHandler = (req, res, next) => {
-  let token = req.cookies.token?.split("Bearer ")?.[1];
+  let token = req.cookies.token;
   if (!token) return errorResponse(res, "Token is missing", 401);
   try {
     const decoded = verifyJwtToken(token);

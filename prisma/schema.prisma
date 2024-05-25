@@ -18,6 +18,7 @@ model Employer {
 model Visite {
   id                     String        @id @unique @default(uuid())
   visiteurId             String
+  visitTime              DateTime
   heureEntrer            DateTime?
   heureEntrerDestination DateTime?
   heureSortirDestination DateTime?

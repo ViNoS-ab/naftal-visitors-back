@@ -13,7 +13,10 @@ export const createJwtToken = (payload: object) => {
 };
 
 export const verifyJwtToken = (token: string): tokenPayload => {
-  return jwt.verify(token, process.env.JWT_SECRET!) as tokenPayload;
+  return jwt.verify(
+    token?.split("Bearer ")?.[1],
+    process.env.JWT_SECRET!
+  ) as tokenPayload;
 };
 
 export const addTokenToCookie = (res: Response, payload: tokenPayload) => {

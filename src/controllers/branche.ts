@@ -82,7 +82,7 @@ export const getBranchesByWilayaController: RequestHandler = async (req, res) =>
   try {
     const wilaya = req.params.wilaya;
     if (!wilaya) return errorResponse(res, "wilaya is required", 400);
-    const branches = await findManyBranches({ wilaya });
+    const branches = await findManyBranches({ wilaya: {contains: wilaya} });
     if (!branches.length) return errorResponse(res, "branches not found", 404);
     return successResponse(res, { branches }, 200);
   } catch (error) {

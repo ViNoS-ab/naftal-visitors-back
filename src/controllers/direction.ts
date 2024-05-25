@@ -44,7 +44,7 @@ export const getDirectionByIdController: RequestHandler = async (req, res) => {
     const id = req.params.id;
     if (!id) return errorResponse(res, "id is required", 400);
     const direction = await getDirectionById(id);
-    if (!direction) return prismaKnownErrorResponse(res, "direction");
+    if (!direction) return errorResponse(res, "direction not found");
     return successResponse(res, { direction });
   } catch (error) {
     return errorResponse(res, "there was an error processing the request");
@@ -106,10 +106,9 @@ export const changeDirectionDirectorController: RequestHandler = async (req, res
 
 export const changeDirectionSecretaryController: RequestHandler = async (req, res) => {
   try {
-    const id = req.params.id
+    const id = req.params.id;
     const { secraitaireId } = req.body;
-    if (!secraitaireId)
-      return errorResponse(res, "secraitaireId is required", 400);
+    if (!secraitaireId) return errorResponse(res, "secraitaireId is required", 400);
     const direction = await findDirection({ id });
     if (!direction) return errorResponse(res, "direction not found", 404);
     await updateDirectionSecretary(id, secraitaireId, direction.brancheId);
@@ -121,10 +120,11 @@ export const changeDirectionSecretaryController: RequestHandler = async (req, re
 
 export const addEmployerToDirectionConttryroller: RequestHandler = async (req, res) => {
   try {
-    const { directionId, employerId } = req.body;
+    const directionId = req.params.id;
+    const { employerId } = req.body;
     if (!directionId || !employerId)
       return errorResponse(res, "directionId and employerId are required", 400);
-    await addEmployerToDirection(directionId, employerId);
+    await addEmployerToDirection(employerId, directionId);
     return successResponse(res, {});
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error)) return errorResponse(res);
@@ -133,7 +133,8 @@ export const addEmployerToDirectionConttryroller: RequestHandler = async (req, r
 
 export const removeEmployerFromDirectionController: RequestHandler = async (req, res) => {
   try {
-    const { directionId, employerId } = req.body;
+    const directionId = req.params.id;
+    const { employerId } = req.body;
     if (!directionId || !employerId)
       return errorResponse(res, "directionId and employerId are required", 400);
     await removeEmployerFromDirection(directionId, employerId);

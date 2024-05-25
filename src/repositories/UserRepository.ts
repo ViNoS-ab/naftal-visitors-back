@@ -86,11 +86,11 @@ export const getUserRoles = async (
     const userRoles: UserRole[] = [];
     if (user?.employer) userRoles.push("employer");
     if (user?.recepcioniste) userRoles.push("recepcioniste");
-    if (user?.secretaire) userRoles.push("secretaire");
+    if (user?.secretaire) userRoles.push("secretaire", "employer");
     if (user?.directeur) {
+      userRoles.push("directeur");
       const direction = await findDirection({ Directeur: { userId: user.id } });
       if (direction?.nom === BRANCH_MAIN_DIRECTION) userRoles.push("directeur_branche");
-      userRoles.push("directeur");
     }
 
     return userRoles;

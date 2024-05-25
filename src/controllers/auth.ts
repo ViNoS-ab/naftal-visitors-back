@@ -18,7 +18,7 @@ export const signupController: RequestHandler = async (req, res) => {
   if (!(email && firstName && lastName && password && brancheId))
     return errorResponse(
       res,
-      "fields (email && firstName && lastName && password && brancheId) are required",
+      "fields email && firstName && lastName && password && brancheId are required",
       400
     );
   try {
@@ -45,15 +45,15 @@ export const loginController: RequestHandler = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await findUserByEmail(email);
-    if (!user) return errorResponse(res, "user not found", 404);
+    if (!user) return errorResponse(res, "Email n'existe pas", 404);
     if (!(await user.verifyPassword(password)))
-      return errorResponse(res, "invalid password", 401);
+      return errorResponse(res, "Mot de passe est incorrect", 401);
 
     const roles = await getUserRoles(user.id);
     addTokenToCookie(res, { id: user.id, roles, brancheId: user.brancheId });
     return successResponse(res, { user: { ...user, password: undefined, roles } }, 200);
   } catch (error) {
-    errorResponse(res, "there was an error processing the request");
+    errorResponse(res, "une erreur s'est produite, essayez à nouveau");
   }
 };
 
