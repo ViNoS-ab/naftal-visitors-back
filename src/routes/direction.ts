@@ -23,7 +23,7 @@ router.get("/:id", getDirectionByIdController);
 router.post(
   "/",
 
-  checkPermissions("directeur_branche"),
+  // checkPermissions("directeur_branche"),
   createDirectionController
 );
 router.put("/:id", updateDirectionController);
@@ -37,20 +37,20 @@ router.put(
 router.put(
   "/:id/secretaire",
 
-  checkPermissions("directeur", "directeur_branche"),
+  // checkPermissions("directeur", "directeur_branche"),
   changeDirectionSecretaryController
 );
 
 router.post(
   "/:id/employers",
 
-  checkPermissions("directeur", "directeur_branche", "secretaire"),
+  // checkPermissions("directeur", "directeur_branche", "secretaire"),
   addEmployerToDirectionConttryroller
 );
 router.delete(
   "/:id/employers",
 
-  checkPermissions("directeur", "directeur_branche", "secretaire"),
+  // checkPermissions("directeur", "directeur_branche", "secretaire"),
   removeEmployerFromDirectionController
 );
 

@@ -7,10 +7,11 @@ const BASE_USER_INCLUDE_FIELDS: Prisma.UtilisateurSelect = {
   id: true,
   firstName: true,
   lastName: true,
-};
+} as const;
 const BASE_INCLUDED_FIELDS: Prisma.DirectionInclude = {
   Directeur: {
     select: {
+      userId: true,
       user: {
         select: BASE_USER_INCLUDE_FIELDS,
       },
@@ -18,12 +19,13 @@ const BASE_INCLUDED_FIELDS: Prisma.DirectionInclude = {
   },
   Secretaire: {
     select: {
+      userId: true,
       user: {
         select: BASE_USER_INCLUDE_FIELDS,
       },
     },
   },
-};
+} as const;
 
 export const getDirectionById = (id: string) => {
   return prisma.direction.findUnique({
