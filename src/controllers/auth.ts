@@ -58,6 +58,6 @@ export const loginController: RequestHandler = async (req, res) => {
 };
 
 export const logoutController: RequestHandler = (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token", { secure: true, sameSite: "none" });
   successResponse(res, { message: "logged out" }, 200);
 };
