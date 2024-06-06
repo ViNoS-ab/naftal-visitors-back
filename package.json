@@ -8,7 +8,8 @@
     "watch": "concurrently  --names \"TS,Nodemon\" -c \"bgBlue,bgMagenta\"  \"tsc -w \" \"nodemon ./build/src/app.js \"",
     "migrate": "npx prisma migrate dev && npx prisma generate",
     "push": "npx prisma db push",
-    "build": "tsc"
+    "build": "tsc",
+    "seed": "ts-node prisma/seed"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +25,7 @@
     "concurrently": "^8.2.2",
     "nodemon": "^3.1.0",
     "prisma": "^5.11.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.3"
   },
   "dependencies": {
