@@ -21,13 +21,14 @@ import { Prisma } from "@prisma/client";
 
 export const createDirectionController: RequestHandler = async (req, res) => {
   try {
-    const { nom, brancheId } = req.body as Prisma.DirectionUncheckedCreateInput;
+    const { nom, brancheId, distance } = req.body as Prisma.DirectionUncheckedCreateInput;
     if (!nom || !brancheId)
       return errorResponse(res, "'nom' and 'brancheId' are required", 400);
     if (brancheId !== req.user.brancheId)
       return errorResponse(res, "you are not authorized", 403);
     const direction = await createDirection({
       nom,
+      distance,
       branche: {
         connect: { id: brancheId },
       },

@@ -14,21 +14,26 @@ import {
 } from "../utils/responses";
 import { getDirectionById } from "../repositories/DirectionRepository";
 import { findUserById } from "../repositories/UserRepository";
-import { io } from "../app";
-import { emitNewVisit, emitVisitRequest, emitVisitUpdate } from "../sockets/emitVisit";
+import {
+  emitNewVisit,
+  emitVisitorAlert,
+  emitVisitRequest,
+  emitVisitUpdate,
+} from "../sockets/emitVisit";
+import { timeouts } from "../../config/timeouts";
+import { cancelAlert, setAlert } from "../utils/alertsTimouts";
 
 export const addVisitController: RequestHandler = async (req, res) => {
   try {
     const { directionId, userId, visitType } = req.body;
     const direction = await getDirectionById(directionId);
 
-    if (!direction || !directionId)
-      return errorResponse(res, "Invalid direction", 400);
+    if (!direction || !directionId) return errorResponse(res, "Invalid direction", 400);
     if (direction?.brancheId !== req.user.brancheId)
-      return errorResponse(res, "Not allowed to add in this branch", 403)
-    
+      return errorResponse(res, "Not allowed to add in this branch", 403);
+
     const visiteur = req.body.visiteur as Prisma.VisiteurCreateInput;
-    if ( !userId || !visiteur) {
+    if (!userId || !visiteur) {
       return errorResponse(res, "Missing userId or visiteur", 400);
     }
     if (visitType !== typeVisite.entreprise && visitType !== typeVisite.personal)
@@ -61,8 +66,8 @@ export const addVisitController: RequestHandler = async (req, res) => {
       visitTime: new Date(),
     });
     successResponse(res, { visite });
-    emitVisitRequest(visite)
-    emitNewVisit(visite)
+    emitVisitRequest(visite);
+    emitNewVisit(visite);
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");
@@ -82,6 +87,7 @@ export const endVisitController: RequestHandler = async (req, res) => {
     visit = await updateVisit(id, updatedFields);
     successResponse(res, { visit });
     emitVisitUpdate(visit);
+    cancelAlert(visit.id);
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");
@@ -132,6 +138,7 @@ export const enterDirectrionController: RequestHandler = async (req, res) => {
     visit = await updateVisit(id, updatedFields);
     successResponse(res, { visit });
     emitVisitUpdate(visit);
+    cancelAlert(visit.id);
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");
@@ -157,6 +164,7 @@ export const exitDirectionController: RequestHandler = async (req, res) => {
     visit = await updateVisit(id, updatedFields);
     successResponse(res, { visit });
     emitVisitUpdate(visit);
+    setAlert(visit);
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");
@@ -176,6 +184,7 @@ export const enterSiteController: RequestHandler = async (req, res) => {
     visit = await updateVisit(id, updatedFields);
     successResponse(res, { visit });
     emitVisitUpdate(visit);
+    setAlert(visit);
   } catch (error) {
     if (!prismaKnownErrorResponse(res, error) && !validationErrorResponse(res, error))
       return errorResponse(res, "Internal server error");

@@ -22,9 +22,9 @@ import {
 export const createBranchController: RequestHandler = async (req, res) => {
   try {
     const { nom, adresse, wilaya } = req.body as Prisma.BrancheCreateInput;
-    if (!nom || !adresse || !wilaya)
+    if (!nom || !adresse || !wilaya || !req.body.distance)
       return errorResponse(res, "nom, adresse, wilaya are required", 400);
-    const branche = await createBranch({ nom, adresse, wilaya });
+    const branche = await createBranch({ nom, adresse, wilaya }, req.body.distance);
     return successResponse(res, { branche }, 201);
   } catch (error) {
     if (!validationErrorResponse(res, error) && !prismaKnownErrorResponse(res, error))

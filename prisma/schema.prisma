@@ -54,6 +54,7 @@ model Direction {
   Employers  Employer[]
   visites    Visite[]
   Secretaire Secretaire?
+  distance   Float    // distance but in time 🤠 (number of minutes needed to reach the direction)
 
   @@unique(fields: [brancheId, nom])
   @@index([brancheId, nom])

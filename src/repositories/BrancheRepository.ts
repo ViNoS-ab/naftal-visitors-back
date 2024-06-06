@@ -32,13 +32,14 @@ export const getBranches = () => {
   return prisma.branche.findMany({ include: BASE_INCLUDED_FIELDS });
 };
 
-export const createBranch = (data: Prisma.BrancheCreateInput) => {
+export const createBranch = (data: Prisma.BrancheCreateInput, distance: number) => {
   return prisma.branche.create({
     data: {
       ...data,
       direction: {
         create: {
           nom: BRANCH_MAIN_DIRECTION,
+          distance
         },
       },
     },
